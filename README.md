@@ -11,7 +11,7 @@ The [Divergent Association Task](https://www.datcreativity.com/) is a simple wor
 ### Setup Problems?
 - Make sure to install [Node](https://nodejs.org/en/download/)
 - Make sure you're connected to the internet.
-- If you have trouble with a repeating popup on Safari upon opening Chromium, try using this command:
+- If you have trouble with a repeating popup on Safari upon opening Chromium (switch to headless to find out), try using this command:
 `sudo codesign --force --deep --sign - ./node_modules/puppeteer/.local-chromium/mac-722234/chrome-mac/Chromium.app`
 
 # FYI

@@ -71,7 +71,7 @@ async function startPuppet () {
 
     await navigationPromise
 
-    await page.waitForSelector('body > form > .button')
+    await page.waitForSelector('body > form > .button', {timeout: 5000})
     await page.click('body > form > .button')
 
     await navigationPromise
@@ -114,7 +114,7 @@ async function startPuppet () {
 }
 
 async function main() {
-    for(var i = 0; i < 50; i++){
+    for(var i = 0; i < 1000; i++){
         await createDictionary();
         await startPuppet();
     }

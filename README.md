@@ -4,7 +4,6 @@ The [Divergent Association Task](https://www.datcreativity.com/) is a simple wor
 
 # Setup
 - Clone this repo
-- Rename `output_EMPTY.csv` to `output.csv`
 - run `npm i`
 - run `node main`
 

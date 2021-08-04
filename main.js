@@ -136,7 +136,6 @@ async function main() {
         await createDictionary();
         await startPuppet();
     }
-    console.log(bestScore)
 }
 
 main();

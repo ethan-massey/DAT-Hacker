@@ -4,7 +4,17 @@ const fs = require('fs');
 
 const WORDS = [];
 const MAXIMUM_INDEX = 6802;
-var bestScore = 0;
+const outputFile = 'output.csv'
+const dictionaryFile = 'dict.txt'
+const homeUrl = 'https://www.datcreativity.com/'
+const ERROR_SELECTOR_NOT_FOUND = 'Selector was not found:'
+
+// selectors
+const startSelector = 'body > form > .button'
+const consentSelector = '#consent-consent-1'
+const submitSelector = 'body > div > div:nth-child(2) > form > input'
+const scoreSelector = 'body > h2 > span'
+const percentStringSelector = 'body > h2'
 
 // Used for choosing word from WORDS[] dictionary
 // to get result, call var index = await getRandomIndex()
@@ -15,9 +25,17 @@ function getRandomIndex() {
     });
 }
 
+// Error message
+function errorMessage(error, context = '') {
+    console.log(`Error: ${error} ${context}`)
+}
+
+// Takes sentence string extracts only the percentage in the string
+// ex: 'Your score was better than 76.82% of participants' >> '76.82%'
 function formatPercentString(str){
     var startRecordingStr = false;
     var ret = '';
+    // start from end of string to discover '%' flag
     for(var i = str.length-1; i >= 0; i--){
         if(str[i] == '%'){
             startRecordingStr = true;
@@ -30,13 +48,14 @@ function formatPercentString(str){
             }
         }
     }
+    // percent is backwards at this point, so return reverse of that
     return ret.split("").reverse().join("");
 }
 
 // parses dict text file and populates WORDS[]
 function createDictionary(){
     return new Promise((resolve) => {
-        lineReader.eachLine('dict.txt', function(line) {
+        lineReader.eachLine(dictionaryFile, function(line) {
             WORDS.push(line);
         });
         
@@ -50,11 +69,11 @@ function writeToOutputFile(words, score, percentBetterThan){
     words.forEach(word => stringBlock += word + ',');
     stringBlock += ',,' + score + ',' + percentBetterThan + '\n';
 
-    fs.appendFile("output.csv", stringBlock, function(err) {
+    fs.appendFile(outputFile, stringBlock, function(err) {
         if(err) {
             return console.log(err);
         }
-        console.log("The file was saved!");
+        console.log("File saved!");
     }); 
 }
 
@@ -65,19 +84,19 @@ async function startPuppet () {
     const page = await browser.newPage();
     const navigationPromise = page.waitForNavigation()
 
-    await page.goto('https://www.datcreativity.com/')
+    await page.goto(homeUrl)
 
     await page.setViewport({ width: 1440, height: 789 })
 
     await navigationPromise
 
-    await page.waitForSelector('body > form > .button', {timeout: 5000})
-    await page.click('body > form > .button')
+    await page.waitForSelector(startSelector)
+    await page.click(startSelector)
 
     await navigationPromise
 
-    await page.waitForSelector('#consent-consent-1')
-    await page.click('#consent-consent-1')
+    await page.waitForSelector(consentSelector)
+    await page.click(consentSelector)
 
     var tenWords = [];
     var selectorAccum = '#words-word';
@@ -95,16 +114,15 @@ async function startPuppet () {
 
     await navigationPromise
 
-    await page.waitForSelector('body > div > div:nth-child(2) > form > input')
-    await page.click('body > div > div:nth-child(2) > form > input')
+    await page.waitForSelector(submitSelector)
+    await page.click(submitSelector)
 
-    await page.waitForSelector('body > h2 > span')
-    var element = await page.$( 'body > h2 > span' );
+    await page.waitForSelector(scoreSelector); //, {timeout: 5000}).catch(errorMessage(ERROR_SELECTOR_NOT_FOUND, scoreSelector))
+    var element = await page.$(scoreSelector);
     let score = await page.evaluate(el => el.textContent, element)
-    bestScore = score > bestScore ? score : bestScore;
     
-    await page.waitForSelector('body > h2')
-    var element = await page.$( 'body > h2' );
+    await page.waitForSelector(percentStringSelector)
+    var element = await page.$(percentStringSelector);
     let perc = await page.evaluate(el => el.textContent, element)
 
     var formattedPerc = formatPercentString(perc)

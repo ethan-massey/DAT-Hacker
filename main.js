@@ -18,7 +18,6 @@ const scoreSelector = 'body > h2 > span'
 const percentStringSelector = 'body > h2'
 
 // Used for choosing word from WORDS[] dictionary
-// to get result, call var index = await getRandomIndex()
 function getRandomIndex() {
     return new Promise((resolve) => {
         var num = Math.floor(Math.random() * MAXIMUM_INDEX)
@@ -86,12 +85,16 @@ async function startPuppet () {
 
     await navigationPromise
 
-    await page.waitForSelector(startSelector)
+    await page.waitForSelector(startSelector, {timeout: TIMEOUT}).catch((error) => {
+        console.error(error);
+    });
     await page.click(startSelector)
 
     await navigationPromise
 
-    await page.waitForSelector(consentSelector)
+    await page.waitForSelector(consentSelector, {timeout: TIMEOUT}).catch((error) => {
+        console.error(error);
+    });
     await page.click(consentSelector)
 
     var tenWords = [];
@@ -109,7 +112,9 @@ async function startPuppet () {
 
     await navigationPromise
 
-    await page.waitForSelector(submitSelector)
+    await page.waitForSelector(submitSelector, {timeout: TIMEOUT}).catch((error) => {
+        console.error(error);
+    });
     await page.click(submitSelector)
 
     await page.waitForSelector(scoreSelector, {timeout: TIMEOUT}).catch((error) => {

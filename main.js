@@ -2,12 +2,13 @@ const puppeteer = require('puppeteer');
 const lineReader = require('line-reader');
 const fs = require('fs');
 
+// constants
 const WORDS = [];
 const MAXIMUM_INDEX = 6802;
-const outputFile = 'output.csv'
-const dictionaryFile = 'dict.txt'
-const homeUrl = 'https://www.datcreativity.com/'
-const ERROR_SELECTOR_NOT_FOUND = 'Selector was not found:'
+const TIMEOUT = 5000;
+const OUTPUT_FILE = 'output.csv'
+const DICTIONARY_FILE = 'dict.txt'
+const HOME_URL = 'https://www.datcreativity.com/'
 
 // selectors
 const startSelector = 'body > form > .button'
@@ -23,11 +24,6 @@ function getRandomIndex() {
         var num = Math.floor(Math.random() * MAXIMUM_INDEX)
         resolve(num);
     });
-}
-
-// Error message
-function errorMessage(error, context = '') {
-    console.log(`Error: ${error} ${context}`)
 }
 
 // Takes sentence string extracts only the percentage in the string
@@ -55,7 +51,7 @@ function formatPercentString(str){
 // parses dict text file and populates WORDS[]
 function createDictionary(){
     return new Promise((resolve) => {
-        lineReader.eachLine(dictionaryFile, function(line) {
+        lineReader.eachLine(DICTIONARY_FILE, function(line) {
             WORDS.push(line);
         });
         
@@ -69,7 +65,7 @@ function writeToOutputFile(words, score, percentBetterThan){
     words.forEach(word => stringBlock += word + ',');
     stringBlock += ',,' + score + ',' + percentBetterThan + '\n';
 
-    fs.appendFile(outputFile, stringBlock, function(err) {
+    fs.appendFile(OUTPUT_FILE, stringBlock, function(err) {
         if(err) {
             return console.log(err);
         }
@@ -84,7 +80,7 @@ async function startPuppet () {
     const page = await browser.newPage();
     const navigationPromise = page.waitForNavigation()
 
-    await page.goto(homeUrl)
+    await page.goto(HOME_URL)
 
     await page.setViewport({ width: 1440, height: 789 })
 
@@ -101,7 +97,6 @@ async function startPuppet () {
     var tenWords = [];
     var selectorAccum = '#words-word';
     for(var i = 1; i <= 10; i++){
-
         let ind = await getRandomIndex();
         var word = WORDS[ind];
         tenWords.push(word);
@@ -117,7 +112,9 @@ async function startPuppet () {
     await page.waitForSelector(submitSelector)
     await page.click(submitSelector)
 
-    await page.waitForSelector(scoreSelector); //, {timeout: 5000}).catch(errorMessage(ERROR_SELECTOR_NOT_FOUND, scoreSelector))
+    await page.waitForSelector(scoreSelector, {timeout: TIMEOUT}).catch((error) => {
+        console.error(error);
+    });
     var element = await page.$(scoreSelector);
     let score = await page.evaluate(el => el.textContent, element)
     
